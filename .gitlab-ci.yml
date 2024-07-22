@@ -1,0 +1,39 @@
+variables:
+  IMAGE_NAME: zeedkhan/ms-upload
+  IMAGE_TAG: upload-1.0
+  
+stages:
+  - build
+  # - deploy
+
+build_image:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+  script:
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+
+deploy:
+  stage: deploy
+  variables:
+    CONTAINER: upload
+    PORT: 8003:8003
+  before_script:
+    - chmod 400 $SSH_KEY
+  script:
+    - echo "Connect to EC2"
+    - ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@ec2-13-212-92-84.ap-southeast-1.compute.amazonaws.com "
+        docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD && 
+        if [ \$(docker ps -q --filter 'name=$CONTAINER') ]; then
+          docker stop $CONTAINER && docker rm $CONTAINER;
+        elif [ \$(docker ps -aq --filter 'name=$CONTAINER') ]; then
+          docker rm $CONTAINER;
+        fi &&
+        docker run -d -p $PORT --name $CONTAINER $IMAGE_NAME:$IMAGE_TAG
+      "
