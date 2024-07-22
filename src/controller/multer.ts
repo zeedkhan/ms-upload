@@ -98,11 +98,11 @@ const storageGCS: StorageEngine = {
 
 
 export const useMulterImage = multer({
-    storage: process.env.NODE_ENV !== 'production' ? storageGCS : fileStorage,
+    storage: process.env.NODE_ENV === 'production' ? storageGCS : fileStorage,
     fileFilter: filterImg,
 });
 
 export const useMulter = multer({
-    storage: process.env.NODE_ENV !== 'production' ? storageGCS : fileStorage,
+    storage: process.env.NODE_ENV === 'production' ? storageGCS : fileStorage,
     fileFilter: allFilesUpload
 });
