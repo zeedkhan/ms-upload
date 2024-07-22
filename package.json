@@ -2,7 +2,6 @@
   "name": "ms-upload",
   "version": "1.0.0",
   "description": "Microservice as a upload",
-  "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "build": "npx tsc",
