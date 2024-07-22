@@ -9,16 +9,17 @@ const createServer = () => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    const gatewayURL = process.env.NODE_ENV === "development" ? "http://localhost:8000" : process.env.GATEWAY_URL as string;
+    const gatewayURL = process.env.NODE_ENV !== "production" ? "http://localhost:8000" : process.env.GATEWAY_URL as string;
+    const frontendURL = process.env.NODE_ENV !== "production" ? "http://localhost:3000" : process.env.FRONTEND_URL as string;
 
     app.use(cors({
-        origin: [gatewayURL]
+        origin: [gatewayURL, frontendURL]
     }));
 
     // Serve static files
     // This is for development only
     // In production, we will 
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV !== "production") {
         const __dirname = path.dirname(__filename);
         app.use("/uploads", express.static(path.join(__dirname, '../../uploads')));
     }

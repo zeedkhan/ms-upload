@@ -62,10 +62,12 @@ const storageGCS: StorageEngine = {
             }
         });
         const bucket = storage.bucket(`${process.env.GCP_BUCKET_NAME}`);
-        const gcsFilename = `${Date.now()}-${file.originalname}`;
+        const folder = 'uploads';
+        const gcsFilename = `${folder}/${Date.now()}-${file.originalname}`;
         const fileStream = bucket.file(gcsFilename).createWriteStream({
+            public: true,
             resumable: false,
-            gzip: true
+            contentType: file.mimetype
         });
 
         fileStream.on('error', (err) => {
