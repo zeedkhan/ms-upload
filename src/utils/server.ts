@@ -8,6 +8,9 @@ const createServer = () => {
 
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cors({
+        origin: [process.env.FRONT_END_URL as string || "http://localhost:3000"]
+    }))
 
     const gatewayURL = process.env.NODE_ENV !== "production" ? "http://localhost:8000" : process.env.GATEWAY_URL as string;
     const frontendURL = process.env.NODE_ENV !== "production" ? "http://localhost:3000" : process.env.FRONTEND_URL as string;
