@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
@@ -7,5 +8,12 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2016",
-  }
+  },
+  "include": [
+    ".eslintrc.js",
+    "./api/*.ts",
+    "./*.js",
+    "src/**/*.ts",
+    "test/**/*.ts",
+  ],
 }
