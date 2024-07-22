@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "outDir": "dist",
+    "sourceMap": true,
+    "target": "esnext",
+    "module": "commonjs",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
+    "noImplicitAny": true,
     "strict": true,
-    "target": "ES2016",
+    "skipLibCheck": true
   },
   "include": [
     ".eslintrc.js",
