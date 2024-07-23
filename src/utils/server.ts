@@ -2,6 +2,9 @@ import express, { Express, Request, Response } from "express"
 import path from 'path';
 import uploadRouter from "../routes/upload";
 import cors from "cors"
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const createServer = () => {
     const app: Express = express();
