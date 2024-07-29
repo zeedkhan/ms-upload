@@ -3,12 +3,12 @@ import multer, { FileFilterCallback, StorageEngine } from 'multer'
 import { v4 } from 'uuid';
 import { Storage } from "@google-cloud/storage";
 import dotenv from 'dotenv';
-
+import path from 'path';
+import fs from "fs"
 dotenv.config();
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
-
 
 export const fileStorage = multer.diskStorage({
     destination: (
@@ -16,7 +16,13 @@ export const fileStorage = multer.diskStorage({
         file: Express.Multer.File,
         callback: DestinationCallback
     ): void => {
-        callback(null, 'uploads/')
+        const folder = request.headers['x-folder'] || '';
+        const folderPath = folder ? path.join('uploads', folder.toString()) : 'uploads';
+        const directoryPath = path.resolve(process.cwd(), folderPath)
+
+        fs.mkdirSync(directoryPath, { recursive: true });
+
+        return callback(null, directoryPath)
     },
 
     filename: (
@@ -25,10 +31,9 @@ export const fileStorage = multer.diskStorage({
         callback: FileNameCallback
     ): void => {
         const s = v4();
-        callback(null, `${s}-${file.originalname}`);
+        return callback(null, `${s}-${file.originalname}`);
     }
 });
-
 
 export const filterImg = (
     request: Request,
@@ -42,7 +47,6 @@ export const filterImg = (
         callback(null, false)
     }
 }
-
 
 export const allFilesUpload = (
     request: Request,
@@ -61,8 +65,12 @@ const storageGCS: StorageEngine = {
                 private_key: process.env.GCP_PRIVATE_KEY,
             }
         });
+        if (!req.headers['x-folder']) {
+            cb(new Error('Folder name is required'));
+        }
+
         const bucket = storage.bucket(`${process.env.GCP_BUCKET_NAME}`);
-        const folder = 'uploads';
+        const folder = req.headers["x-folder"] + '/uploads';
         const gcsFilename = `${folder}/${Date.now()}-${file.originalname}`;
         const fileStream = bucket.file(gcsFilename).createWriteStream({
             public: true,
