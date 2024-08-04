@@ -3,6 +3,7 @@ import path from 'path';
 import uploadRouter from "../routes/upload";
 import cors from "cors"
 import dotenv from "dotenv";
+import TranscriptionRoute from "../routes/transcription";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ const createServer = () => {
     });
 
     app.use("/upload", uploadRouter)
+    app.use("/transcription", TranscriptionRoute)
 
     return app
 }
