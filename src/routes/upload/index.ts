@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { useMulter, useMulterImage } from "../../controller/multer";
+import { memoryMulter, useMulter, useMulterImage } from "../../controller/multer";
 
 const uploadRouter = Router();
 

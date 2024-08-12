@@ -4,6 +4,7 @@ import uploadRouter from "../routes/upload";
 import cors from "cors"
 import dotenv from "dotenv";
 import TranscriptionRoute from "../routes/transcription";
+import helmet from "helmet";
 
 dotenv.config();
 
@@ -17,7 +18,20 @@ const createServer = () => {
     const frontendURL = process.env.NODE_ENV !== "production" ? "http://localhost:3000" : process.env.FRONTEND_URL as string;
 
     app.use(cors({
-        origin: [gatewayURL, frontendURL]
+        origin: [gatewayURL, frontendURL],
+    }));
+
+    app.use(helmet({
+        crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: {
+            policy: "cross-origin"
+        },
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: [gatewayURL, frontendURL],
+                scriptSrc: ["* data: 'unsafe-eval' 'unsafe-inline' blob:"]
+            }
+        }
     }));
 
     // Serve static files

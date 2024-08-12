@@ -10,6 +10,9 @@ dotenv.config();
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
 
+
+export const memoryStorage = multer.memoryStorage();
+
 export const fileStorage = multer.diskStorage({
     destination: (
         request: Request,
@@ -106,6 +109,7 @@ const storageGCS: StorageEngine = {
     }
 };
 
+export const memoryMulter = multer({ storage: memoryStorage });
 
 export const useMulterImage = multer({
     storage: process.env.NODE_ENV === 'production' ? storageGCS : fileStorage,
