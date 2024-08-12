@@ -22,7 +22,7 @@ const createServer = () => {
     }));
 
     app.use(helmet({
-        crossOriginEmbedderPolicy: false,
+        crossOriginEmbedderPolicy: true,
         crossOriginResourcePolicy: {
             policy: "cross-origin"
         },
