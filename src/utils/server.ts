@@ -18,7 +18,7 @@ const createServer = () => {
     const frontendURL = process.env.NODE_ENV !== "production" ? "http://localhost:3000" : process.env.FRONTEND_URL as string;
 
     app.use(cors({
-        origin: [gatewayURL, frontendURL],
+        origin: [gatewayURL, frontendURL, "https://storage.googleapis.com"],
     }));
 
     app.use(helmet({
@@ -28,7 +28,7 @@ const createServer = () => {
         },
         contentSecurityPolicy: {
             directives: {
-                defaultSrc: [gatewayURL, frontendURL],
+                defaultSrc: [gatewayURL, frontendURL, "https://storage.googleapis.com"],
                 scriptSrc: ["* data: 'unsafe-eval' 'unsafe-inline' blob:"]
             }
         }
