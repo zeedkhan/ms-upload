@@ -1,9 +1,7 @@
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources";
 import dotenv from "dotenv"
-import { Request, response, Response } from "express";
 import { Run } from "openai/resources/beta/threads/runs/runs";
-import { Message } from "openai/resources/beta/threads/messages";
 import { searchEngine, wikiSearch } from "../lib/ai-tools/search";
 import axios from "axios";
 

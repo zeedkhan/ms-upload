@@ -91,99 +91,24 @@ export const conversationWithMemory = async (transcribe: string, messages: ChatC
         return new SystemMessage({ content: msg.content || "" });
     });
 
-    // const prompt = ChatPromptTemplate.fromMessages([
-    //     [
-    //         "system",
-    //         `You are an AI assistant that will response as human speech to the user and your response language based on the user language.
-    //             Now, you are talking directly to the user. Response as a human the way of human speak.
-    //             Response as a human speak.`
-    //     ],
-    //     ["placeholder", "{chat_history}"],
-    //     ["human", "{input}"],
-    //     ["placeholder", "{agent_scratchpad}"],
-    // ]);
+    const prompt = ChatPromptTemplate.fromMessages([
+        [
+            "system",
+            `You are an AI assistant that will response as human speech to the user and your response language based on the user language.
+                Now, you are talking directly to the user. Response as a human the way of human speak.
+                Response as a human speak.`
+        ],
+        ["placeholder", "{chat_history}"],
+        ["human", "{input}"],
+    ]);
 
-    const prompt = await pull<PromptTemplate>("zeedkhan/chat-react-multi-lang");
-    const toolNames = tools.map((tool) => tool.name);
-    const promptWithInputs = await prompt.partial({
-        tools: renderTextDescription(tools),
-        tool_names: toolNames.join(","),
-        language: "English"
-    });
-    const modelWithStop = llm.bind({
-        stop: ["\nObservation"],
-        tools: tools,
-    });
     try {
-        const runnableAgent = RunnableSequence.from([
-            {
-                input: (i: {
-                    input: string;
-                    steps: AgentStep[];
-                    chat_history: BaseMessage[];
-                }) => {
-                    return i.input
-                },
-                agent_scratchpad: (i: {
-                    input: string;
-                    steps: AgentStep[];
-                    chat_history: BaseMessage[];
-                }) => formatLogToString(i.steps),
-                chat_history: (i: {
-                    input: string;
-                    steps: AgentStep[];
-                    chat_history: BaseMessage[];
-                }) => i.chat_history,
-            },
-            promptWithInputs,
-            modelWithStop,
-            
-            new ReActSingleInputOutputParser({ toolNames }),
-        ]);
-
-        // llm.bindTools(tools);
-        const memory = new BufferMemory({
-            memoryKey: "chat_history",
-            outputKey: "output",
-            inputKey: "input"
-        });
-
-        const agentExecutor = AgentExecutor.fromAgentAndTools({
-            verbose: false,
-            agent: runnableAgent,
-            tools,
-            memory,
-            handleParsingErrors: (e) => {
-                console.log("Error here", e)
-                return "Error with Google Cloud Vertext AI"
-            },
-
-        });
-
-
-        // const agent = await createOpenAIToolsAgent({
-        //     llm,
-        //     tools: tools,
-        //     prompt,
-        // });
-
-        // const agentExecutor = new AgentExecutor({
-        //     agent,
-        //     tools: tools,
-        // });
-
-        const { output } = await agentExecutor.invoke({
+        const chain = prompt.pipe(llm);
+        const { content } = await chain.invoke({
             input: transcribe,
+            chat_history: convertMsgs
         });
-
-        // const response = await wikiTools.invoke({ input: "ประยุทธ์ จันทร์โอชา" })
-
-        // console.log(response);
-
-
-        // return "Error with Google Cloud Vertext AI"
-
-        return output as string;
+        return content as string;
     } catch (err: any) {
         if (err?.response) {
             console.log(err.response.data.candidates)
@@ -192,7 +117,5 @@ export const conversationWithMemory = async (transcribe: string, messages: ChatC
         }
 
         return "Error with Google Cloud Vertext AI"
-
-        // throw new Error("Error in conversationWithMemory");
     }
 }

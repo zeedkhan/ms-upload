@@ -5,6 +5,7 @@ import cors from "cors"
 import dotenv from "dotenv";
 import TranscriptionRoute from "../routes/transcription";
 import helmet from "helmet";
+import CrawlerRoute from "../routes/crawler";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ const createServer = () => {
 
     app.use("/upload", uploadRouter)
     app.use("/transcription", TranscriptionRoute)
+    app.use("/crawler", CrawlerRoute)
 
     return app
 }

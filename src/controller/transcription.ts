@@ -161,8 +161,6 @@ export const transcribeMemoryAndCompletion = async (req: Request, res: Response)
     const { llm, assistantId } = req.query;
     const { file } = req;
     const socketId = req.headers['x-socket-id'];
-    console.log(req.headers)
-    console.log(socketId);
 
     if (file) {
         const transcribe = await memoryTranscribe(file, "json");
@@ -194,7 +192,10 @@ export const transcribeMemoryAndCompletion = async (req: Request, res: Response)
                     // set the thread id
                     currentThreadId = conversation.data[0].thread_id;
                 }
-            } else {
+            } else if (llm === "conversation") {
+                const response = await conversationWithMemory(transcribe, JSON.parse(req.body.messages as string));
+                assistantResponse = response;
+            } else if (llm == "completion") {
                 const response = await chatCompletion(transcribe, JSON.parse(req.body.messages as string));
                 assistantResponse = response;
             }
