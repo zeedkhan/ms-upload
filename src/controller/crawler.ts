@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import OpenAI from "openai";
-import puppeteer from "puppeteer";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
@@ -28,10 +27,8 @@ const responseSchema = z.object({
         "Kissmetrics",
         "Segment"
     ])),
-    cms: z.string().refine(value => value === value.toLowerCase(), {
-        message: "CMS name must be lowercase"
-    }),
-    description: z.string(),
+    cms: z.string().transform((value) => value.toLowerCase()),
+    framework: z.array(z.string())
 });
 
 
@@ -43,18 +40,14 @@ export const decisionAI = async (req: Request, res: Response) => {
             {
                 role: "system",
                 content: `
-                You’re a knowledgeable digital marketing specialist with extensive experience in content management systems (CMS), analytics tools. You have a deep understanding of the distinctions between CMS platforms, development frameworks and analytics tools, allowing you to easily identify and categorize them based on their functionalities and purposes.
-                Your task is to detect and confirm whether the provided name refers to a content management system (CMS) and analytics tools rather than a development framework. Please analyze the provided name, analytics name carefully and provide.
-                If the CMS name is recognized, please provide additional notes on its primary features and its intended use case. If the provided name does not correspond to any known CMS, state 'N/A' and include a brief explanation of why the name is not classified as a CMS.
-
-                Noted that CMS includes Website Builders, E-commerce Platforms, Blogging Platforms, and Forum Software.
-
-                Here are some triggers to help you identify CMS and analytics tools:
-                    -Some CMS they attached their brand in the Footer section of the website.
-                    -Some CMS they use their CDN to website resource.
-                    -Some CMS they use their meta tags to load the website.
-                    -Some analytics tools they use same domain to load the tool but different refer to their differece tool.\n
-                        Like: Google Analytics, Google Tag Manager, the main domain is googletagmanager.com but you have to check the path to know which tool is being used, eg: googletagmanager.com/gtag/ is using GA4 or Google Tag while googletagmanager.com/gtm/ is using Google Tag Manager
+                You’re a highly skilled web scraper and data analyst with extensive experience in developing AI-driven crawlers. Your expertise lies in identifying various content management systems, analytics tools, and website frameworks by crawling through websites and extracting relevant information. You excel at delivering precise reports that are easy to understand and act upon.
+                Your task is to create an AI-driven crawler that can extract specific information from a given website. The crawler should provide insights on the following aspects:
+                1. The content management system (CMS) of the website, considering all types, including Website Builders, E-commerce Platforms, Blogging Platforms, and Forum Software.
+                2. Possible CMS options that the website may be using.
+                3. Analytics tools employed by the website, including options like GA4, Adobe Analytics, GTM, and Hotjar.
+                4. The content present on the website, summarizing key information.
+                5. The framework being used, noting that this aspect is not as critical.
+                Please keep in mind the importance of providing clear and structured outputs for each point to ensure that the report is comprehensive and aligns with user expectations. Also, be sure to specify any coding language or environment preferences you may have for the implementation.
                 `
             },
             {
@@ -63,52 +56,12 @@ export const decisionAI = async (req: Request, res: Response) => {
             }
         ],
         response_format: zodResponseFormat(responseSchema, "cms_and_analytics_detection")
-    })
+    });
 
+    // Check response of AI decision from the user provided content Meta tag and script tag
     const cms = aiResponse.choices[0].message.content;
+
     return res.status(200).json({
         cms
     });
 }
-
-export const loaderForScreenshot = async (req: Request, res: Response) => {
-    const { url } = req.body;
-    try {
-        const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-        const page = await browser.newPage();
-        try {
-            await page.goto(url, { waitUntil: "networkidle0", timeout: 6000 });
-            const scripts = await page.evaluate(() => {
-                const allScripts = Array.from(document.querySelectorAll('script'))
-                    .map((script) => script.src || "")
-                    .filter((script) => script !== "");
-
-                const footerContents = Array.from(document.querySelectorAll('footer')).map((script) => script.outerHTML || "");
-                const metas = Array.from(document.querySelectorAll('meta')).map((meta) => meta.outerHTML || "");
-                return {
-                    allScripts,
-                    footerContents,
-                    metas
-                }
-            });
-            const screenshotBuffer = await page.screenshot({ encoding: 'base64' });
-            await browser.close();
-            return res.status(200).json({
-                screenshot: screenshotBuffer,
-                content: scripts
-            });
-        } catch (err) {
-            await browser.close();
-            return res.status(500).json({
-                message: "An error occurred while trying to navigate to the URL",
-            });
-        }
-
-    } catch (err) {
-        return res.status(500).json({
-            message: "An error occurred while trying to take a screenshot",
-        });
-    }
-};
-
-
